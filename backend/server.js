@@ -17,7 +17,7 @@ app.use(express.json());
 // Carpeta pública para los archivos subidos
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Rutas
+// Rutas de autenticación
 app.use('/api', authRoutes);
 
 // Ruta simple para verificar que el servidor está vivo
@@ -25,7 +25,7 @@ app.get('/api/ping', (req, res) => {
   res.json({ message: 'Servidor activo ✅' });
 });
 
-// Configurar Multer para recibir archivos
+// Configurar Multer para carga de archivos
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const dir = path.join(__dirname, 'uploads');
@@ -70,7 +70,22 @@ app.post('/api/proveedores', upload.array('archivos'), (req, res) => {
   }
 });
 
-// Iniciar servidor
+// Nueva ruta para listar archivos subidos
+app.get('/api/uploads', (req, res) => {
+  const uploadsDir = path.join(__dirname, 'uploads');
+
+  fs.readdir(uploadsDir, (err, files) => {
+    if (err) {
+      console.error('Error leyendo uploads:', err);
+      return res.status(500).json({ message: 'Error leyendo uploads' });
+    }
+
+    const fileUrls = files.map(file => `https://registro-proveedores-backend.onrender.com/uploads/${file}`);
+    res.json(fileUrls);
+  });
+});
+
+// Iniciar el servidor
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en puerto ${PORT}`);
 });
