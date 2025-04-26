@@ -1,8 +1,11 @@
+// backend/server.js
+
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
+const authRoutes = require('./routes/auth');
 
 const app = express();
 const PORT = process.env.PORT || 10000;
@@ -10,26 +13,35 @@ const PORT = process.env.PORT || 10000;
 // Middlewares
 app.use(cors());
 app.use(express.json());
-app.use('/uploads', express.static('uploads'));
 
-// Crear carpeta uploads si no existe
-const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir);
-}
+// Carpeta pública para los archivos subidos
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Configurar Multer para guardar archivos
+// Rutas
+app.use('/api', authRoutes);
+
+// Ruta simple para verificar que el servidor está vivo
+app.get('/api/ping', (req, res) => {
+  res.json({ message: 'Servidor activo ✅' });
+});
+
+// Configurar Multer para recibir archivos
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, uploadsDir);
+    const dir = path.join(__dirname, 'uploads');
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    cb(null, dir);
   },
   filename: function (req, file, cb) {
     cb(null, `${Date.now()}-${file.originalname}`);
   }
 });
+
 const upload = multer({ storage: storage });
 
-// Ruta para recibir formulario
+// Ruta para carga de documentos de proveedores
 app.post('/api/proveedores', upload.array('archivos'), (req, res) => {
   try {
     const datosProveedor = {
@@ -43,7 +55,12 @@ app.post('/api/proveedores', upload.array('archivos'), (req, res) => {
       archivos: req.files.map(file => file.filename)
     };
 
-    const filePath = path.join(uploadsDir, `${datosProveedor.ruc}_${Date.now()}.json`);
+    const dir = path.join(__dirname, 'uploads');
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+
+    const filePath = path.join(dir, `${datosProveedor.ruc}_${Date.now()}.json`);
     fs.writeFileSync(filePath, JSON.stringify(datosProveedor, null, 2));
 
     res.status(200).json({ message: 'Proveedor registrado exitosamente' });
@@ -53,23 +70,7 @@ app.post('/api/proveedores', upload.array('archivos'), (req, res) => {
   }
 });
 
-// Nueva ruta para listar archivos subidos
-app.get('/api/proveedores/uploads', (req, res) => {
-  fs.readdir(uploadsDir, (err, files) => {
-    if (err) {
-      console.error('Error leyendo la carpeta uploads:', err);
-      return res.status(500).send('Error leyendo los archivos');
-    }
-
-    const listaArchivos = files.filter(file =>
-      file.endsWith('.pdf') || file.endsWith('.json')
-    );
-
-    const links = listaArchivos.map(file => {
-      return `<li><a href="/uploads/${encodeURIComponent(file)}" target="_blank">${file}</a></li>`;
-    }).join('');
-
-    res.send(`
-      <html>
-        <head><title>Documentos Subidos</title></head>
-
+// Iniciar servidor
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en puerto ${PORT}`);
+});
