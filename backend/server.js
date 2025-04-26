@@ -1,40 +1,59 @@
 const express = require('express');
-const multer = require('multer');
 const cors = require('cors');
+const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
-const { PDFDocument } = require('pdf-lib');
-const nodemailer = require('nodemailer');
 
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 10000;
 
+// Middlewares
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static('uploads'));
 
+// Configurar Multer para guardar archivos
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const dir = 'uploads/';
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir);
+  destination: function (req, file, cb) {
+    const dir = './uploads';
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir);
+    }
     cb(null, dir);
   },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + '-' + file.originalname);
+  filename: function (req, file, cb) {
+    cb(null, `${Date.now()}-${file.originalname}`);
   }
 });
 
-const upload = multer({ storage });
+const upload = multer({ storage: storage });
 
-app.get('/', (req, res) => {
-  res.send('API de Registro de Proveedores funcionando 🚀');
+// Ruta para recibir formulario
+app.post('/api/proveedores', upload.array('archivos'), (req, res) => {
+  try {
+    // Guardar los datos en un JSON
+    const datosProveedor = {
+      empresa: req.body.empresa,
+      ruc: req.body.ruc,
+      contacto: req.body.contacto,
+      correo: req.body.correo,
+      dni: req.body.dni,
+      telefono: req.body.telefono,
+      categoria: req.body.categoria,
+      archivos: req.files.map(file => file.filename)
+    };
+
+    const filePath = `uploads/${datosProveedor.ruc}_${Date.now()}.json`;
+    fs.writeFileSync(filePath, JSON.stringify(datosProveedor, null, 2));
+
+    res.status(200).json({ message: 'Proveedor registrado exitosamente' });
+  } catch (error) {
+    console.error('Error guardando proveedor:', error);
+    res.status(500).json({ message: 'Error procesando la solicitud' });
+  }
 });
 
-app.post('/api/proveedor', (req, res) => {
-  res.status(200).json({ message: 'Proveedor registrado (mock)' });
+// Servidor
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en puerto ${PORT}`);
 });
-
-app.post('/api/proveedor/:id/upload', upload.array('archivos'), async (req, res) => {
-  res.status(200).json({ message: 'Archivos subidos (mock)' });
-});
-
-app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`));
