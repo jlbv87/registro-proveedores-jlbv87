@@ -7,6 +7,12 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 10000;
 
+// Crear la carpeta uploads si no existe al arrancar el servidor
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir);
+}
+
 // Middlewares
 app.use(cors());
 app.use(express.json());
@@ -15,11 +21,7 @@ app.use('/uploads', express.static('uploads'));
 // Configurar Multer para guardar archivos
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const dir = './uploads';
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir);
-    }
-    cb(null, dir);
+    cb(null, uploadsDir);
   },
   filename: function (req, file, cb) {
     cb(null, `${Date.now()}-${file.originalname}`);
@@ -31,7 +33,6 @@ const upload = multer({ storage: storage });
 // Ruta para recibir formulario
 app.post('/api/proveedores', upload.array('archivos'), (req, res) => {
   try {
-    // Guardar los datos en un JSON
     const datosProveedor = {
       empresa: req.body.empresa,
       ruc: req.body.ruc,
@@ -43,7 +44,7 @@ app.post('/api/proveedores', upload.array('archivos'), (req, res) => {
       archivos: req.files.map(file => file.filename)
     };
 
-    const filePath = `uploads/${datosProveedor.ruc}_${Date.now()}.json`;
+    const filePath = path.join(uploadsDir, `${datosProveedor.ruc}_${Date.now()}.json`);
     fs.writeFileSync(filePath, JSON.stringify(datosProveedor, null, 2));
 
     res.status(200).json({ message: 'Proveedor registrado exitosamente' });
@@ -53,15 +54,8 @@ app.post('/api/proveedores', upload.array('archivos'), (req, res) => {
   }
 });
 
-// Servidor
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en puerto ${PORT}`);
-});
-
-// Nueva ruta: Listar archivos en /uploads
+// Nueva ruta para listar archivos
 app.get('/api/proveedores/uploads', (req, res) => {
-  const uploadsDir = path.join(__dirname, 'uploads');
-
   fs.readdir(uploadsDir, (err, files) => {
     if (err) {
       console.error('Error leyendo la carpeta uploads:', err);
@@ -75,3 +69,9 @@ app.get('/api/proveedores/uploads', (req, res) => {
     res.json(listaArchivos);
   });
 });
+
+// Servidor
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en puerto ${PORT}`);
+});
+
