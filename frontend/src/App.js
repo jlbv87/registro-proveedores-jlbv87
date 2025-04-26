@@ -1,130 +1,30 @@
-import React, { useState } from 'react';
+// frontend/src/App.js
+
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import RegistroProveedor from './pages/RegistroProveedor';
+import LoginProveedor from './pages/LoginProveedor';
+import FormularioProveedor from './pages/FormularioProveedor';
+import ProtectedRoute from './ProtectedRoute'; // 👈 Importamos la protección
 
 function App() {
-  const [formData, setFormData] = useState({});
-  const [archivos, setArchivos] = useState({});
-
-  const categorias = [
-    "Cocina - Cubertería",
-    "Cocina - Implementos lonchera fría",
-    "Cocina - Jabas",
-    "Cocina - Manipuleo",
-    "Cocina - Equipos de pastelería",
-  ];
-
-  const documentos = [
-    "Ficha de proveedor",
-    "Acuerdo comercial",
-    "Referencias comerciales",
-    "Factura en blanco",
-    "Encabezado del estado de cuenta",
-    "Ficha RUC",
-    "Licencia de funcionamiento o DJ",
-    "Constancia DJ anual SUNAT",
-    "Declaración jurada del proveedor",
-  ];
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
-
-  const handleFileChange = (e, key) => {
-    setArchivos({ ...archivos, [key]: e.target.files[0] });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    const data = new FormData();
-    
-    for (const key in formData) {
-      data.append(key, formData[key]);
-    }
-
-    for (const key in archivos) {
-      data.append('archivos', archivos[key], key + '.pdf');
-    }
-
-    try {
-      const response = await fetch('https://registro-proveedores-backend.onrender.com/api/proveedores', {
-        method: 'POST',
-        body: data,
-      });
-
-      if (response.ok) {
-        alert('Formulario enviado correctamente. ✅');
-      } else {
-        alert('Hubo un error al enviar el formulario. ❌');
-      }
-    } catch (error) {
-      console.error('Error al enviar el formulario:', error);
-      alert('Error en la conexión al servidor. ❌');
-    }
-  };
-
   return (
-    <div style={{ maxWidth: '700px', margin: '50px auto', padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-      <h1 style={{ textAlign: 'center', marginBottom: '30px' }}>Registro de Proveedores 🚀</h1>
-
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Nombre de la empresa:</label>
-          <input type="text" name="empresa" onChange={handleInputChange} required style={{ width: '100%', padding: '8px', margin: '8px 0' }} />
-        </div>
-
-        <div>
-          <label>RUC (11 dígitos):</label>
-          <input type="text" name="ruc" maxLength="11" onChange={handleInputChange} required style={{ width: '100%', padding: '8px', margin: '8px 0' }} />
-        </div>
-
-        <div>
-          <label>Nombre del contacto:</label>
-          <input type="text" name="contacto" onChange={handleInputChange} required style={{ width: '100%', padding: '8px', margin: '8px 0' }} />
-        </div>
-
-        <div>
-          <label>Correo corporativo:</label>
-          <input type="email" name="correo" onChange={handleInputChange} required style={{ width: '100%', padding: '8px', margin: '8px 0' }} />
-        </div>
-
-        <div>
-          <label>DNI (8 dígitos):</label>
-          <input type="text" name="dni" maxLength="8" onChange={handleInputChange} required style={{ width: '100%', padding: '8px', margin: '8px 0' }} />
-        </div>
-
-        <div>
-          <label>Teléfono:</label>
-          <input type="text" name="telefono" onChange={handleInputChange} required style={{ width: '100%', padding: '8px', margin: '8px 0' }} />
-        </div>
-
-        <div>
-          <label>Categoría:</label>
-          <select name="categoria" onChange={handleInputChange} required style={{ width: '100%', padding: '8px', margin: '8px 0' }}>
-            <option value="">Seleccione una categoría</option>
-            {categorias.map((cat, idx) => (
-              <option key={idx} value={cat}>{cat}</option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <h3 style={{ marginTop: '20px' }}>Subir documentos (PDF):</h3>
-          {documentos.map((doc, idx) => (
-            <div key={idx} style={{ marginBottom: '10px' }}>
-              <label>{doc}:</label>
-              <input type="file" accept="application/pdf" onChange={(e) => handleFileChange(e, doc)} required style={{ width: '100%', padding: '8px' }} />
-            </div>
-          ))}
-        </div>
-
-        <button type="submit" style={{ marginTop: '20px', padding: '12px 20px', backgroundColor: '#4CAF50', color: 'white', border: 'none', width: '100%', cursor: 'pointer' }}>
-          Enviar formulario
-        </button>
-      </form>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Navigate to="/login" />} />
+        <Route path="/register" element={<RegistroProveedor />} />
+        <Route path="/login" element={<LoginProveedor />} />
+        <Route
+          path="/formulario"
+          element={
+            <ProtectedRoute>
+              <FormularioProveedor />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </Router>
   );
 }
 
 export default App;
-
