@@ -34,4 +34,14 @@ router.post('/register', async (req, res) => {
   res.status(200).json({ message: 'Proveedor registrado exitosamente' });
 });
 
-module.exports = router;
+// Login de proveedor
+router.post('/login', async (req, res) => {
+  const { ruc, password } = req.body;
+
+  if (!ruc || !password) {
+    return res.status(400).json({ message: 'RUC y contraseña son obligatorios' });
+  }
+
+  const usuarios = JSON.parse(fs.readFileSync(usuariosPath));
+  const usuario = usu
+
