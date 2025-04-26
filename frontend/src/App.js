@@ -2,9 +2,9 @@
 
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import RegistroProveedor from './pages/RegistroProveedor';
-import LoginProveedor from './pages/LoginProveedor';
-import FormularioProveedor from './pages/FormularioProveedor';
+import RegistroProveedor from './RegistroProveedor';
+import LoginProveedor from './LoginProveedor';
+import FormularioProveedor from './FormularioProveedor';
 import ProtectedRoute from './ProtectedRoute'; // 👈 Importamos la protección
 
 function App() {
