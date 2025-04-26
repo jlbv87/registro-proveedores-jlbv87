@@ -7,16 +7,16 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// Crear la carpeta uploads si no existe
-const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir);
-}
-
 // Middlewares
 app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
+
+// Crear carpeta uploads si no existe
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir);
+}
 
 // Configurar Multer para guardar archivos
 const storage = multer.diskStorage({
@@ -53,7 +53,7 @@ app.post('/api/proveedores', upload.array('archivos'), (req, res) => {
   }
 });
 
-// Nueva ruta para mostrar lista de archivos como links
+// Nueva ruta para listar archivos subidos
 app.get('/api/proveedores/uploads', (req, res) => {
   fs.readdir(uploadsDir, (err, files) => {
     if (err) {
@@ -72,17 +72,4 @@ app.get('/api/proveedores/uploads', (req, res) => {
     res.send(`
       <html>
         <head><title>Documentos Subidos</title></head>
-        <body>
-          <h1>Lista de Archivos Disponibles</h1>
-          <ul>${links}</ul>
-        </body>
-      </html>
-    `);
-  });
-});
-
-// Servidor
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en puerto ${PORT}`);
-});
 
