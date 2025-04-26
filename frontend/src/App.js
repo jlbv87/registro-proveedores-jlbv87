@@ -33,9 +33,34 @@ function App() {
     setArchivos({ ...archivos, [key]: e.target.files[0] });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert('Formulario enviado correctamente (simulado).');
+
+    const data = new FormData();
+    
+    for (const key in formData) {
+      data.append(key, formData[key]);
+    }
+
+    for (const key in archivos) {
+      data.append('archivos', archivos[key], key + '.pdf');
+    }
+
+    try {
+      const response = await fetch('https://registro-proveedores-backend.onrender.com/api/proveedores', {
+        method: 'POST',
+        body: data,
+      });
+
+      if (response.ok) {
+        alert('Formulario enviado correctamente. ✅');
+      } else {
+        alert('Hubo un error al enviar el formulario. ❌');
+      }
+    } catch (error) {
+      console.error('Error al enviar el formulario:', error);
+      alert('Error en la conexión al servidor. ❌');
+    }
   };
 
   return (
