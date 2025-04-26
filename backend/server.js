@@ -57,3 +57,21 @@ app.post('/api/proveedores', upload.array('archivos'), (req, res) => {
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en puerto ${PORT}`);
 });
+
+// Nueva ruta: Listar archivos en /uploads
+app.get('/api/proveedores/uploads', (req, res) => {
+  const uploadsDir = path.join(__dirname, 'uploads');
+
+  fs.readdir(uploadsDir, (err, files) => {
+    if (err) {
+      console.error('Error leyendo la carpeta uploads:', err);
+      return res.status(500).json({ message: 'Error leyendo los archivos' });
+    }
+
+    const listaArchivos = files.filter(file => 
+      file.endsWith('.pdf') || file.endsWith('.json')
+    );
+
+    res.json(listaArchivos);
+  });
+});
