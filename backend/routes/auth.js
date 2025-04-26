@@ -1,47 +1,61 @@
+// backend/routes/auth.js
+
 const express = require('express');
+const router = express.Router();
 const fs = require('fs');
-const bcrypt = require('bcryptjs');
 const path = require('path');
 
-const router = express.Router();
-const usuariosPath = path.join(__dirname, '../uploads/usuarios.json');
-
-// Crear archivo usuarios.json si no existe
-if (!fs.existsSync(usuariosPath)) {
-  fs.writeFileSync(usuariosPath, JSON.stringify([]));
-}
-
-// Registro de proveedor
-router.post('/register', async (req, res) => {
+// Ruta para registro de proveedor
+router.post('/register', (req, res) => {
   const { ruc, password } = req.body;
 
   if (!ruc || !password) {
     return res.status(400).json({ message: 'RUC y contraseña son obligatorios' });
   }
 
-  const usuarios = JSON.parse(fs.readFileSync(usuariosPath));
-  const existe = usuarios.find(u => u.ruc === ruc);
+  const proveedor = { ruc, password };
 
-  if (existe) {
-    return res.status(400).json({ message: 'El RUC ya está registrado' });
+  const uploadsDir = path.join(__dirname, '..', 'uploads');
+
+  // Asegurar que la carpeta /uploads exista
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
   }
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+  const filePath = path.join(uploadsDir, `${ruc}.json`);
 
-  usuarios.push({ ruc, password: hashedPassword });
-  fs.writeFileSync(usuariosPath, JSON.stringify(usuarios, null, 2));
-
-  res.status(200).json({ message: 'Proveedor registrado exitosamente' });
+  fs.writeFile(filePath, JSON.stringify(proveedor, null, 2), (err) => {
+    if (err) {
+      console.error('Error guardando proveedor:', err);
+      return res.status(500).json({ message: 'Error al guardar proveedor' });
+    }
+    res.status(201).json({ message: 'Proveedor registrado exitosamente' });
+  });
 });
 
-// Login de proveedor
-router.post('/login', async (req, res) => {
+// Ruta para login de proveedor
+router.post('/login', (req, res) => {
   const { ruc, password } = req.body;
 
   if (!ruc || !password) {
     return res.status(400).json({ message: 'RUC y contraseña son obligatorios' });
   }
 
-  const usuarios = JSON.parse(fs.readFileSync(usuariosPath));
-  const usuario = usu
+  const uploadsDir = path.join(__dirname, '..', 'uploads');
+  const filePath = path.join(uploadsDir, `${ruc}.json`);
+
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({ message: 'Proveedor no encontrado' });
+  }
+
+  const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+
+  if (data.password !== password) {
+    return res.status(401).json({ message: 'Contraseña incorrecta' });
+  }
+
+  res.status(200).json({ message: 'Login exitoso' });
+});
+
+module.exports = router;
 
