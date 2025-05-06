@@ -5,6 +5,8 @@ function RegistroProveedor() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
+  const backendUrl = process.env.REACT_APP_BACKEND_URL;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -14,7 +16,7 @@ function RegistroProveedor() {
     }
 
     try {
-      const response = await fetch('https://registro-proveedores-backend.onrender.com/api/registro', {
+      const response = await fetch(`${backendUrl}/api/registro`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -77,4 +79,3 @@ function RegistroProveedor() {
 }
 
 export default RegistroProveedor;
-
