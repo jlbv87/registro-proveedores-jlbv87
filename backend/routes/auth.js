@@ -5,57 +5,41 @@ const router = express.Router();
 const fs = require('fs');
 const path = require('path');
 
-// Ruta para registro de proveedor
-router.post('/register', (req, res) => {
-  const { ruc, password } = req.body;
-
-  if (!ruc || !password) {
-    return res.status(400).json({ message: 'RUC y contraseña son obligatorios' });
-  }
-
-  const proveedor = { ruc, password };
-
-  const uploadsDir = path.join(__dirname, '..', 'uploads');
-
-  // Asegurar que la carpeta /uploads exista
-  if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
-  }
-
-  const filePath = path.join(uploadsDir, `${ruc}.json`);
-
-  fs.writeFile(filePath, JSON.stringify(proveedor, null, 2), (err) => {
-    if (err) {
-      console.error('Error guardando proveedor:', err);
-      return res.status(500).json({ message: 'Error al guardar proveedor' });
-    }
-    res.status(201).json({ message: 'Proveedor registrado exitosamente' });
-  });
+// Ruta de prueba
+router.get('/ping', (req, res) => {
+  res.json({ message: 'Servidor activo ✅' });
 });
 
-// Ruta para login de proveedor
-router.post('/login', (req, res) => {
-  const { ruc, password } = req.body;
+// Ruta de registro
+router.post('/registro', (req, res) => {
+  try {
+    const { ruc, password } = req.body;
 
-  if (!ruc || !password) {
-    return res.status(400).json({ message: 'RUC y contraseña son obligatorios' });
+    if (!ruc || !password) {
+      return res.status(400).json({ message: 'Faltan campos obligatorios' });
+    }
+
+    const filePath = path.join(__dirname, '..', 'proveedores.json');
+
+    let proveedores = [];
+    if (fs.existsSync(filePath)) {
+      const data = fs.readFileSync(filePath, 'utf8');
+      proveedores = data ? JSON.parse(data) : [];
+    }
+
+    const existe = proveedores.some(p => p.ruc === ruc);
+    if (existe) {
+      return res.status(409).json({ message: 'Proveedor ya existe' });
+    }
+
+    proveedores.push({ ruc, password });
+    fs.writeFileSync(filePath, JSON.stringify(proveedores, null, 2));
+
+    return res.status(201).json({ message: 'Proveedor registrado correctamente ✅' });
+  } catch (error) {
+    console.error('Error en el backend:', error);
+    return res.status(500).json({ message: 'Error interno del servidor' });
   }
-
-  const uploadsDir = path.join(__dirname, '..', 'uploads');
-  const filePath = path.join(uploadsDir, `${ruc}.json`);
-
-  if (!fs.existsSync(filePath)) {
-    return res.status(404).json({ message: 'Proveedor no encontrado' });
-  }
-
-  const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-
-  if (data.password !== password) {
-    return res.status(401).json({ message: 'Contraseña incorrecta' });
-  }
-
-  res.status(200).json({ message: 'Login exitoso' });
 });
 
 module.exports = router;
-
