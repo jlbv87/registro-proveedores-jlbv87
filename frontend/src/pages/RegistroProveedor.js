@@ -1,13 +1,23 @@
+// frontend/src/pages/RegistroProveedor.js
+
 import React, { useState } from 'react';
 
 function RegistroProveedor() {
   const [ruc, setRuc] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmarPassword, setConfirmarPassword] = useState('');
+  const [mensaje, setMensaje] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (password !== confirmarPassword) {
+      setMensaje('Las contraseñas no coinciden ❌');
+      return;
+    }
+
     try {
-      const response = await fetch('https://registro-proveedores-backend.onrender.com/api/register', {
+      const response = await fetch('https://registro-proveedores-backend.onrender.com/api/registro', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -15,15 +25,19 @@ function RegistroProveedor() {
         body: JSON.stringify({ ruc, password }),
       });
 
+      const data = await response.json();
+
       if (response.ok) {
-        alert('Registro exitoso ✅');
-        window.location.href = '/login';
+        setMensaje('Registro exitoso ✅');
+        setRuc('');
+        setPassword('');
+        setConfirmarPassword('');
       } else {
-        alert('Error al registrar ❌');
+        setMensaje(data.error || 'Error en el registro ❌');
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Error de conexión ❌');
+      setMensaje('Error de conexión ❌');
     }
   };
 
@@ -37,10 +51,15 @@ function RegistroProveedor() {
         </div>
         <div>
           <label>Contraseña:</label>
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength="6" />
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
         </div>
-        <button type="submit">Registrarme</button>
+        <div>
+          <label>Confirmar Contraseña:</label>
+          <input type="password" value={confirmarPassword} onChange={(e) => setConfirmarPassword(e.target.value)} required />
+        </div>
+        <button type="submit">Registrarse</button>
       </form>
+      {mensaje && <p style={{ marginTop: '10px' }}>{mensaje}</p>}
     </div>
   );
 }

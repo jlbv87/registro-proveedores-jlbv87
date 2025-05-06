@@ -3,44 +3,52 @@
 import React, { useEffect, useState } from 'react';
 
 function DashboardComprador() {
-  const [archivos, setArchivos] = useState([]);
+  const [proveedores, setProveedores] = useState([]);
 
   useEffect(() => {
-    const fetchArchivos = async () => {
+    const fetchProveedores = async () => {
       try {
         const response = await fetch('https://registro-proveedores-backend.onrender.com/api/proveedores/uploads');
         const data = await response.json();
-        setArchivos(data);
+        setProveedores(data);
       } catch (error) {
-        console.error('Error cargando archivos:', error);
+        console.error('Error cargando los archivos:', error);
       }
     };
 
-    fetchArchivos();
+    fetchProveedores();
   }, []);
 
   return (
     <div style={{ padding: '20px' }}>
       <h1>Panel del Comprador</h1>
-      {archivos.length === 0 ? (
-        <p>No hay archivos aún.</p>
+      {proveedores.length === 0 ? (
+        <p>No hay documentos cargados aún.</p>
       ) : (
-        <ul>
-          {archivos.map((archivo, index) => (
-            <li key={index}>
-              <a
-                href={`https://registro-proveedores-backend.onrender.com/uploads/${archivo}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {archivo}
-              </a>
-            </li>
+        <div>
+          {proveedores.map((proveedor, index) => (
+            <div key={index} style={{ marginBottom: '20px' }}>
+              <h3>RUC: {proveedor.ruc}</h3>
+              <ul>
+                {proveedor.archivos.map((archivo, i) => (
+                  <li key={i}>
+                    <a
+                      href={`https://registro-proveedores-backend.onrender.com/uploads/${archivo}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {archivo}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
     </div>
   );
 }
 
 export default DashboardComprador;
+
