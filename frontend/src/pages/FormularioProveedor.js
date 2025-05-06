@@ -1,3 +1,5 @@
+// frontend/src/pages/FormularioProveedor.js
+
 import React, { useState } from 'react';
 
 function FormularioProveedor() {
@@ -8,12 +10,9 @@ function FormularioProveedor() {
     setArchivos(e.target.files);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const ruc = localStorage.getItem('ruc');
-    if (!ruc) {
-      alert('Sesión no válida. Por favor vuelve a iniciar sesión.');
-      window.location.href = '/login';
+  const handleUpload = async () => {
+    if (!archivos.length) {
+      setMensaje('Por favor selecciona uno o más archivos PDF.');
       return;
     }
 
@@ -22,29 +21,21 @@ function FormularioProveedor() {
       formData.append('archivos', archivos[i]);
     }
 
-    formData.append('ruc', ruc);
-    formData.append('empresa', 'Proveedor S.A.C.'); // puedes capturar esto en otro paso si deseas
-    formData.append('contacto', 'Nombre Contacto'); // idem
-    formData.append('correo', 'contacto@email.com');
-    formData.append('dni', '12345678');
-    formData.append('telefono', '999999999');
-    formData.append('categoria', 'general');
-
     try {
-      const response = await fetch('https://registro-proveedores-backend.onrender.com/api/proveedores', {
+      const response = await fetch('https://registro-proveedores-backend.onrender.com/api/proveedores/upload', {
         method: 'POST',
-        body: formData
+        body: formData,
       });
 
-      const data = await response.json();
       if (response.ok) {
-        setMensaje('✅ Archivos subidos correctamente');
+        setMensaje('Archivos subidos exitosamente ✅');
+        setArchivos([]); // Limpia la selección
       } else {
-        setMensaje(`❌ Error: ${data.message}`);
+        setMensaje('Error al subir los archivos ❌');
       }
     } catch (error) {
       console.error('Error al subir:', error);
-      setMensaje('❌ Error al conectar con el servidor');
+      setMensaje('Error de conexión ❌');
     }
   };
 
@@ -53,15 +44,30 @@ function FormularioProveedor() {
       <h1>Formulario de Documentos</h1>
       <p>Aquí cargarás todos los documentos requeridos como proveedor.</p>
 
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Selecciona tus archivos PDF:</label><br />
-          <input type="file" multiple accept=".pdf" onChange={handleFileChange} />
-        </div>
-        <button type="submit" style={{ marginTop: '15px', padding: '10px 20px' }}>Subir Archivos</button>
-      </form>
+      <div>
+        <label>Selecciona tus archivos PDF:</label>
+        <input
+          type="file"
+          accept=".pdf"
+          multiple
+          onChange={handleFileChange}
+          style={{ display: 'block', margin: '10px 0' }}
+        />
+      </div>
 
-      {mensaje && <p style={{ marginTop: '20px' }}>{mensaje}</p>}
+      {archivos.length > 0 && (
+        <ul>
+          {Array.from(archivos).map((file, idx) => (
+            <li key={idx}>{file.name}</li>
+          ))}
+        </ul>
+      )}
+
+      <button onClick={handleUpload} style={{ padding: '10px 20px' }}>
+        Subir Archivos
+      </button>
+
+      {mensaje && <p style={{ marginTop: '15px', fontWeight: 'bold' }}>{mensaje}</p>}
     </div>
   );
 }
