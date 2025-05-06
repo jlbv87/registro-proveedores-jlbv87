@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 
 function FormularioProveedor() {
-  const [archivos, setArchivos] = useState([]);
+  const [archivos, setArchivos] = useState(null);
   const [mensaje, setMensaje] = useState('');
 
   const handleFileChange = (e) => {
@@ -11,8 +11,8 @@ function FormularioProveedor() {
   };
 
   const handleUpload = async () => {
-    if (!archivos.length) {
-      setMensaje('Por favor selecciona uno o más archivos PDF.');
+    if (!archivos || archivos.length === 0) {
+      alert('Por favor, selecciona al menos un archivo.');
       return;
     }
 
@@ -22,20 +22,20 @@ function FormularioProveedor() {
     }
 
     try {
-      const response = await fetch('https://registro-proveedores-backend.onrender.com/api/proveedores/upload', {
+      const ruc = localStorage.getItem('ruc'); // Asegúrate que esto se haya guardado al hacer login
+      const response = await fetch(`https://registro-proveedores-backend.onrender.com/api/proveedores/upload/${ruc}`, {
         method: 'POST',
         body: formData,
       });
 
       if (response.ok) {
         setMensaje('Archivos subidos exitosamente ✅');
-        setArchivos([]); // Limpia la selección
       } else {
         setMensaje('Error al subir los archivos ❌');
       }
     } catch (error) {
       console.error('Error al subir:', error);
-      setMensaje('Error de conexión ❌');
+      setMensaje('Error al subir los archivos ❌');
     }
   };
 
@@ -44,30 +44,22 @@ function FormularioProveedor() {
       <h1>Formulario de Documentos</h1>
       <p>Aquí cargarás todos los documentos requeridos como proveedor.</p>
 
-      <div>
+      <div style={{ marginBottom: '15px' }}>
         <label>Selecciona tus archivos PDF:</label>
         <input
           type="file"
-          accept=".pdf"
           multiple
+          accept="application/pdf"
           onChange={handleFileChange}
-          style={{ display: 'block', margin: '10px 0' }}
+          style={{ display: 'block', marginTop: '10px' }}
         />
       </div>
-
-      {archivos.length > 0 && (
-        <ul>
-          {Array.from(archivos).map((file, idx) => (
-            <li key={idx}>{file.name}</li>
-          ))}
-        </ul>
-      )}
 
       <button onClick={handleUpload} style={{ padding: '10px 20px' }}>
         Subir Archivos
       </button>
 
-      {mensaje && <p style={{ marginTop: '15px', fontWeight: 'bold' }}>{mensaje}</p>}
+      {mensaje && <p style={{ marginTop: '20px', color: mensaje.includes('✅') ? 'green' : 'red' }}>{mensaje}</p>}
     </div>
   );
 }
