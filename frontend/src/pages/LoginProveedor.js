@@ -1,5 +1,3 @@
-// frontend/src/pages/LoginProveedor.js
-
 import React, { useState } from 'react';
 
 function LoginProveedor() {
@@ -18,7 +16,7 @@ function LoginProveedor() {
       });
 
       if (response.ok) {
-        localStorage.setItem('authenticated', 'true'); // ✅ Guardar login
+        localStorage.setItem('authenticated', 'true'); // Marca como logueado
         alert('Login exitoso ✅');
         window.location.href = '/formulario';
       } else {
@@ -36,13 +34,13 @@ function LoginProveedor() {
       <form onSubmit={handleSubmit}>
         <div>
           <label>RUC:</label>
-          <input type="text" value={ruc} onChange={(e) => setRuc(e.target.value)} required maxLength="11" style={{ width: '100%', marginBottom: '10px' }} />
+          <input type="text" value={ruc} onChange={(e) => setRuc(e.target.value)} required maxLength="11" />
         </div>
         <div>
           <label>Contraseña:</label>
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength="6" style={{ width: '100%', marginBottom: '10px' }} />
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength="6" />
         </div>
-        <button type="submit" style={{ padding: '10px 20px' }}>Iniciar Sesión</button>
+        <button type="submit">Iniciar Sesión</button>
       </form>
     </div>
   );

@@ -1,5 +1,3 @@
-// frontend/src/pages/FormularioProveedor.js
-
 import React from 'react';
 
 function FormularioProveedor() {

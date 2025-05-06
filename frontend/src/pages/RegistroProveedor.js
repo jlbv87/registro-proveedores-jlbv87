@@ -1,5 +1,3 @@
-// frontend/src/pages/RegistroProveedor.js
-
 import React, { useState } from 'react';
 
 function RegistroProveedor() {
@@ -11,7 +9,9 @@ function RegistroProveedor() {
     try {
       const response = await fetch('https://registro-proveedores-backend.onrender.com/api/register', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({ ruc, password }),
       });
 
@@ -33,11 +33,11 @@ function RegistroProveedor() {
       <form onSubmit={handleSubmit}>
         <div>
           <label>RUC:</label>
-          <input type="text" value={ruc} onChange={(e) => setRuc(e.target.value)} required />
+          <input type="text" value={ruc} onChange={(e) => setRuc(e.target.value)} required maxLength="11" />
         </div>
         <div>
           <label>Contraseña:</label>
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength="6" />
         </div>
         <button type="submit">Registrarme</button>
       </form>
