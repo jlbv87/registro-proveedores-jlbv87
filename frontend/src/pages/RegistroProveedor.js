@@ -1,18 +1,15 @@
-// frontend/src/pages/RegistroProveedor.js
-
 import React, { useState } from 'react';
 
 function RegistroProveedor() {
   const [ruc, setRuc] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmarPassword, setConfirmarPassword] = useState('');
-  const [mensaje, setMensaje] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (password !== confirmarPassword) {
-      setMensaje('Las contraseñas no coinciden ❌');
+    if (password !== confirmPassword) {
+      alert('Las contraseñas no coinciden ❌');
       return;
     }
 
@@ -25,19 +22,17 @@ function RegistroProveedor() {
         body: JSON.stringify({ ruc, password }),
       });
 
-      const data = await response.json();
-
       if (response.ok) {
-        setMensaje('Registro exitoso ✅');
-        setRuc('');
-        setPassword('');
-        setConfirmarPassword('');
+        alert('Registro exitoso ✅');
+        window.location.href = '/';
+      } else if (response.status === 409) {
+        alert('Este RUC ya está registrado ❗');
       } else {
-        setMensaje(data.error || 'Error en el registro ❌');
+        alert('Error al registrar ❌');
       }
     } catch (error) {
-      console.error('Error:', error);
-      setMensaje('Error de conexión ❌');
+      console.error('Error de conexión:', error);
+      alert('Error de conexión ❌');
     }
   };
 
@@ -47,21 +42,39 @@ function RegistroProveedor() {
       <form onSubmit={handleSubmit}>
         <div>
           <label>RUC:</label>
-          <input type="text" value={ruc} onChange={(e) => setRuc(e.target.value)} required maxLength="11" />
+          <input
+            type="text"
+            value={ruc}
+            onChange={(e) => setRuc(e.target.value)}
+            required
+            maxLength="11"
+          />
         </div>
         <div>
           <label>Contraseña:</label>
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            minLength="6"
+          />
         </div>
         <div>
           <label>Confirmar Contraseña:</label>
-          <input type="password" value={confirmarPassword} onChange={(e) => setConfirmarPassword(e.target.value)} required />
+          <input
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+            minLength="6"
+          />
         </div>
         <button type="submit">Registrarse</button>
       </form>
-      {mensaje && <p style={{ marginTop: '10px' }}>{mensaje}</p>}
     </div>
   );
 }
 
 export default RegistroProveedor;
+
