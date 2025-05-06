@@ -1,7 +1,7 @@
 // frontend/src/App.js
 
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import RegistroProveedor from './pages/RegistroProveedor';
 import LoginProveedor from './pages/LoginProveedor';
 import FormularioProveedor from './pages/FormularioProveedor';
@@ -16,8 +16,12 @@ function App() {
         <Route path="/" element={<Navigate to="/login" />} />
         <Route path="/register" element={<RegistroProveedor />} />
         <Route path="/login" element={<LoginProveedor />} />
-        <Route path="/formulario" element={<FormularioProveedor />} />
-        <Route path="/comprador" element={<LoginComprador />} />
+        <Route path="/formulario" element={
+          <ProtectedRoute>
+            <FormularioProveedor />
+          </ProtectedRoute>
+        } />
+        <Route path="/login-comprador" element={<LoginComprador />} />
         <Route path="/dashboard" element={<DashboardComprador />} />
       </Routes>
     </Router>
@@ -25,4 +29,3 @@ function App() {
 }
 
 export default App;
-
