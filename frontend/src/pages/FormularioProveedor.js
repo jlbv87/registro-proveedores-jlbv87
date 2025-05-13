@@ -1,72 +1,165 @@
 // frontend/src/pages/FormularioProveedor.js
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 function FormularioProveedor() {
-  const [ruc, setRuc] = useState('');
-  const [archivos, setArchivos] = useState([]);
-  const [mensaje, setMensaje] = useState('');
+  const [empresa, setEmpresa]       = useState('');
+  const [ruc, setRuc]               = useState(localStorage.getItem('ruc') || '');
+  const [contacto, setContacto]     = useState('');
+  const [correo, setCorreo]         = useState('');
+  const [dni, setDni]               = useState('');
+  const [telefono, setTelefono]     = useState('');
+  const [categoria, setCategoria]   = useState('');
+  const [archivos, setArchivos]     = useState([]);
+  const [mensajeError, setMensajeError] = useState('');
 
-  useEffect(() => {
-    const rucGuardado = localStorage.getItem('ruc');
-    if (rucGuardado) {
-      setRuc(rucGuardado);
-    } else {
-      setMensaje('Error: no se encontró RUC. Por favor inicia sesión nuevamente.');
-    }
-  }, []);
-
-  const handleArchivoChange = (e) => {
-    setArchivos(e.target.files);
+  const handleFileChange = (e) => {
+    setArchivos([...e.target.files]);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setMensajeError('');
 
-    if (!ruc || archivos.length === 0) {
-      setMensaje('Por favor completa todos los campos.');
+    // Validaciones básicas
+    if (!empresa || !ruc || !contacto || !correo || !dni || !telefono || !categoria) {
+      setMensajeError('❗ Debes llenar todos los campos');
       return;
     }
 
     const formData = new FormData();
-    for (let i = 0; i < archivos.length; i++) {
-      formData.append('archivos', archivos[i]);
-    }
+    formData.append('empresa', empresa);
     formData.append('ruc', ruc);
+    formData.append('contacto', contacto);
+    formData.append('correo', correo);
+    formData.append('dni', dni);
+    formData.append('telefono', telefono);
+    formData.append('categoria', categoria);
+    archivos.forEach((file) => formData.append('archivos', file));
 
     try {
-      const response = await fetch('https://registro-proveedores-backend.onrender.com/api/proveedores/upload', {
-        method: 'POST',
-        body: formData,
-      });
+      const res = await fetch(
+        `${process.env.REACT_APP_BACKEND_URL}/api/proveedores`,
+        { method: 'POST', body: formData }
+      );
 
-      if (response.ok) {
-        setMensaje('Archivos subidos exitosamente ✅');
-        setArchivos([]);
+      if (res.ok) {
+        alert('Proveedor registrado y archivos subidos ✅');
       } else {
-        setMensaje('Error al subir los archivos ❌');
+        const body = await res.json().catch(() => ({}));
+        setMensajeError(body.message || 'Error al procesar la solicitud ❌');
       }
-    } catch (error) {
-      console.error('Error al subir archivos:', error);
-      setMensaje('Error de conexión ❌');
+    } catch (err) {
+      console.error(err);
+      setMensajeError('Error de conexión ❌');
     }
   };
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h1>Formulario de Documentos</h1>
-      {mensaje && <p>{mensaje}</p>}
-      {ruc && (
-        <form onSubmit={handleSubmit}>
-          <p><strong>RUC:</strong> {ruc}</p>
-          <div>
-            <label>Selecciona tus archivos PDF:</label>
-            <input type="file" onChange={handleArchivoChange} accept="application/pdf" multiple required />
-          </div>
-          <br />
-          <button type="submit">Subir Archivos</button>
-        </form>
+    <div style={{ padding: '20px', maxWidth: 600, margin: 'auto' }}>
+      <h1>Formulario de Proveedor</h1>
+
+      {mensajeError && (
+        <div style={{ color: 'red', marginBottom: 16 }}>
+          {mensajeError}
+        </div>
       )}
+
+      <form onSubmit={handleSubmit}>
+        <div>
+          <label>Empresa:</label><br />
+          <input
+            type="text"
+            value={empresa}
+            onChange={(e) => setEmpresa(e.target.value)}
+            required
+            style={{ width: '100%', marginBottom: 12 }}
+          />
+        </div>
+
+        <div>
+          <label>RUC:</label><br />
+          <input
+            type="text"
+            value={ruc}
+            onChange={(e) => setRuc(e.target.value)}
+            required
+            maxLength="11"
+            style={{ width: '100%', marginBottom: 12 }}
+          />
+        </div>
+
+        <div>
+          <label>Contacto:</label><br />
+          <input
+            type="text"
+            value={contacto}
+            onChange={(e) => setContacto(e.target.value)}
+            required
+            style={{ width: '100%', marginBottom: 12 }}
+          />
+        </div>
+
+        <div>
+          <label>Correo:</label><br />
+          <input
+            type="email"
+            value={correo}
+            onChange={(e) => setCorreo(e.target.value)}
+            required
+            style={{ width: '100%', marginBottom: 12 }}
+          />
+        </div>
+
+        <div>
+          <label>DNI:</label><br />
+          <input
+            type="text"
+            value={dni}
+            onChange={(e) => setDni(e.target.value)}
+            required
+            maxLength="8"
+            style={{ width: '100%', marginBottom: 12 }}
+          />
+        </div>
+
+        <div>
+          <label>Teléfono:</label><br />
+          <input
+            type="tel"
+            value={telefono}
+            onChange={(e) => setTelefono(e.target.value)}
+            required
+            style={{ width: '100%', marginBottom: 12 }}
+          />
+        </div>
+
+        <div>
+          <label>Categoría:</label><br />
+          <input
+            type="text"
+            value={categoria}
+            onChange={(e) => setCategoria(e.target.value)}
+            required
+            style={{ width: '100%', marginBottom: 12 }}
+          />
+        </div>
+
+        <div>
+          <label>Archivos PDF:</label><br />
+          <input
+            type="file"
+            multiple
+            accept="application/pdf"
+            onChange={handleFileChange}
+            style={{ marginBottom: 20 }}
+          />
+        </div>
+
+        <button type="submit" style={{ padding: '10px 20px' }}>
+          Subir Datos y Archivos
+        </button>
+      </form>
     </div>
   );
 }
